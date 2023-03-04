@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Demo.WebApi.ViewModels
+namespace Demo.WebApi.ViewModels.AccountViewModels
 {
     public class LoginVm
     {
-        [Required]
         public string Jwt { get; set; } = null!;
-        [Required]
         public string RefToken { get; set; } = null!;
     }
 }

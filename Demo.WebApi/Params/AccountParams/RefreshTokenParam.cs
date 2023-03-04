@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Demo.WebApi.Params
+namespace Demo.WebApi.Params.AccountParams
 {
     public class RefreshTokenParam
     {

@@ -5,10 +5,10 @@ using Demo.Common.ConstVariables;
 using Demo.Common.Enums;
 using Demo.WebApi.Infrastructure.Filters;
 using Demo.WebApi.Infrastructure.ApiResponse;
-using Demo.WebApi.Params;
-using Demo.WebApi.ViewModels;
 using Demo.Common.Helpers;
 using Demo.Services.Implements.Interfaces;
+using Demo.WebApi.Params.AccountParams;
+using Demo.WebApi.ViewModels.AccountViewModels;
 
 namespace Demo.WebApi.Controllers
 {
@@ -61,6 +61,7 @@ namespace Demo.WebApi.Controllers
         [SysAllowAnonymous]
         public ApiJsonResponse Logout()
         {
+            // 針對登入的 Header 去做登出
             if (_jwtHelper.TryGetJwtPayload(Request, out JwtPayloadDto jwtPayloadDto))
             {
                 _accountService.Logout(jwtPayloadDto.Jwt, jwtPayloadDto.Sub);
@@ -166,6 +167,23 @@ namespace Demo.WebApi.Controllers
             return new ApiJsonResponse()
             {
                 StatusCode = ApiResultStatus.SUCCESS
+            };
+        }
+
+        /// <summary>
+        /// 取得角色名稱
+        /// </summary>
+        [HttpPost]
+        [SysRoleFilter(DemoRole.ADMIN)]
+        public ApiJsonResponse<GetRoleNameVm> GetRoleName()
+        {
+            return new ApiJsonResponse<GetRoleNameVm>()
+            {
+                StatusCode = ApiResultStatus.SUCCESS,
+                Data = new GetRoleNameVm()
+                {
+                    RoleNames = _accountService.GetRoleName()
+                }
             };
         }
     }

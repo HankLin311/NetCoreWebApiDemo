@@ -7,14 +7,14 @@ using Demo.WebApi.Infrastructure.Filters;
 using Demo.WebApi.Infrastructure.MiddleWare;
 using Demo.Services.Implements;
 using Demo.Common.Helpers;
-using Demo.Repository.implements;
 using Demo.Repository.Infrastructures;
 using Demo.Repository.Datas;
-using Demo.Repository.implements.Interfaces;
 using Demo.Services.Implements.Interfaces;
 using Demo.WebApi.Infrastructure.ApiResponse;
 using Demo.Common.ConstVariables;
 using Microsoft.AspNetCore.Mvc;
+using Demo.Repository.DemoDb.Implements;
+using Demo.Repository.DemoDb.Implements.Interfaces;
 
 namespace Demo.WebApi
 {
@@ -105,11 +105,13 @@ namespace Demo.WebApi
                 // 註冊 CORS 
                 builder.Services.AddCors(options =>
                 {
-                    // 正式環境，不可使用 *
                     options.AddPolicy(MyAllowSpecificOrigins,
                         policy =>
                         {
-                            policy.WithOrigins("*");
+                            // 正式環境，不可使用 *
+                            policy.WithOrigins("*")
+                            .AllowAnyMethod()
+                            .AllowAnyHeader();
                         });
                 });
 

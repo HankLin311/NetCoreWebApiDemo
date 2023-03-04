@@ -1,5 +1,5 @@
 ﻿using Demo.Common.Helpers;
-using Demo.Repository.Entities;
+using Demo.Repository.DemoDb.Entities;
 using Demo.Repository.Infrastructures;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

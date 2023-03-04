@@ -1,6 +1,6 @@
-﻿using Demo.Repository.Entities;
+﻿using Demo.Repository.DemoDb.Entities;
 
-namespace Demo.Repository.implements.Interfaces
+namespace Demo.Repository.DemoDb.Implements.Interfaces
 {
     public interface IAccountRepository
     {

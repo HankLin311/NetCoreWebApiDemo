@@ -49,9 +49,6 @@ namespace Demo.Services.Implements.Interfaces
         /// </summary>
         void ApproveRegister(ApproveRegisterDto ApproveRegisterDto);
 
-        /// <summary>
-        /// 是否在登出名單中
-        /// </summary>
-        bool IsLogout(string jwt);
+        List<string> GetRoleName();
     }
 }

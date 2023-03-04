@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Demo.WebApi.Params
+namespace Demo.WebApi.Params.AccountParams
 {
     public class ApproveRegisterParam
     {

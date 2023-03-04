@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Demo.Repository.Entities;
+using Demo.Repository.DemoDb.Entities;
 
 namespace Demo.Repository.Datas
 {

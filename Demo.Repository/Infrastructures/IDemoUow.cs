@@ -1,5 +1,5 @@
-﻿using Demo.Repository.Entities;
-using Demo.Repository.implements.Interfaces;
+﻿using Demo.Repository.DemoDb.Entities;
+using Demo.Repository.DemoDb.Implements.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Demo.Repository.Infrastructures

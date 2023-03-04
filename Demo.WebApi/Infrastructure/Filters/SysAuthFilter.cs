@@ -4,8 +4,7 @@ using Demo.WebApi.Infrastructure.Attributes;
 using Demo.Common.ConstVariables;
 using Demo.WebApi.Infrastructure.ApiResponse;
 using Demo.Common.Helpers;
-using Demo.Services.Implements.Interfaces;
-using Microsoft.Extensions.Logging;
+using Demo.Repository.Infrastructures;
 
 namespace Demo.WebApi.Infrastructure.Filters
 {
@@ -15,14 +14,14 @@ namespace Demo.WebApi.Infrastructure.Filters
     public class SysAuthFilter : IAuthorizationFilter
     {
         private readonly ILogger<SysAuthFilter> _logger;
-        private readonly IAccountService _accountService;
         private readonly JwtHelper _jwtHelper;
+        private readonly IDemoUow _demoUow;
 
-        public SysAuthFilter(ILogger<SysAuthFilter> logger, IAccountService accountService, JwtHelper JwtHelper)
+        public SysAuthFilter(ILogger<SysAuthFilter> logger, JwtHelper JwtHelper, IDemoUow demoUow)
         {
             _logger = logger;
             _jwtHelper = JwtHelper;
-            _accountService = accountService;
+            _demoUow = demoUow;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
@@ -38,8 +37,8 @@ namespace Demo.WebApi.Infrastructure.Filters
                 {
                     errorMsg = "未登入系統，請重新登入";
                 }
-                // Jwt 是否登出
-                else if (_accountService.IsLogout(jwt))
+                // Jwt 是否加入到黑名單(登出)
+                else if (IsBlockJwt(jwt))
                 {
                     errorMsg = "未登入系統，請重新登入";
                 }
@@ -61,6 +60,19 @@ namespace Demo.WebApi.Infrastructure.Filters
                     });
                 }
             }
+        }
+
+        private bool IsBlockJwt(string jwt) 
+        {
+            // 查出是否有在 BlackList 中
+            var blackList = _demoUow.SysJwtBlackListRepository.FindConditions(x => (x.JwtToken).Equals(jwt));
+
+            if (blackList is null || blackList.Count() == 0)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

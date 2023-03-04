@@ -1,6 +1,6 @@
 ﻿using Demo.Common.Exceptions;
 using Demo.Common.Helpers;
-using Demo.Repository.Entities;
+using Demo.Repository.DemoDb.Entities;
 using Demo.Repository.Infrastructures;
 using Demo.Services.Dtos.AccountDtos;
 using Demo.Services.Implements.Interfaces;
@@ -26,7 +26,7 @@ namespace Demo.Services.Implements
         public string CreateJwt(UserRoleInfoDto userRole)
         {
             // 建立特徵
-            List<Claim> claims = new List<Claim>
+            var claims = new List<Claim>
             {
                 new Claim(JwtClaimType.Sub, userRole.Email),
                 new Claim(JwtClaimType.Jti, Guid.NewGuid().ToString())
@@ -46,7 +46,7 @@ namespace Demo.Services.Implements
         public UserRoleInfoDto GetUserRoleInfo(UserRoleInfoDto getAccountRolesDto)
         {
             // 取得人員和人員角色資料
-            User? userRoleInfo = _demoUow.AccountRepository
+            var userRoleInfo = _demoUow.AccountRepository
                 .GetUserRoleInfo(getAccountRolesDto.Email, getAccountRolesDto.Password);
 
             if (userRoleInfo is null)
@@ -72,7 +72,7 @@ namespace Demo.Services.Implements
         public UserRoleInfoDto GetChangeRefTokenUserRoleInfo(string refToken)
         {
             // 查詢 refToken 是否到期
-            SysRefTokenList? reftokenList = _demoUow.SysRefTokenListRepository
+            var reftokenList = _demoUow.SysRefTokenListRepository
                 .FindFirst(x => x.RefToken == Guid.Parse(refToken)
                             && DateTime.Compare(x.EffectiveDate, DateTime.Now) == 1);
 
@@ -82,7 +82,7 @@ namespace Demo.Services.Implements
             }
 
             // 取得人員角色資料
-            User? userRoleInfo = _demoUow.AccountRepository.GetUserRoleInfo(reftokenList.UserId);
+            var userRoleInfo = _demoUow.AccountRepository.GetUserRoleInfo(reftokenList.UserId);
 
             if (userRoleInfo is null)
             {
@@ -90,7 +90,7 @@ namespace Demo.Services.Implements
             }
 
             // 取得人員權限清單
-            List<string> userRoles =
+            var userRoles =
                 userRoleInfo.UserRoles.Select(x => x.Role.RoleName).ToList();
 
             return new UserRoleInfoDto()
@@ -132,7 +132,7 @@ namespace Demo.Services.Implements
             Guid newRefToken = Guid.NewGuid();
 
             // 更改成新的 RefToken 的 UUID
-            SysRefTokenList? tokenList = _demoUow.SysRefTokenListRepository.FindSingle(x => x.RefToken == Guid.Parse(oldRefToken));
+            var tokenList = _demoUow.SysRefTokenListRepository.FindSingle(x => x.RefToken == Guid.Parse(oldRefToken));
 
             if (tokenList is null)
             {
@@ -234,7 +234,7 @@ namespace Demo.Services.Implements
         public void ApproveRegister(ApproveRegisterDto approveRegisterDto)
         {
             // 取出註冊時的 USER 資料
-            RegisterUser? registerUser = _demoUow.RegisterUserRepository
+            var registerUser = _demoUow.RegisterUserRepository
                 .FindSingle(x => x.RegisterUserId == Guid.Parse(approveRegisterDto.RegisterUserId));
 
             if (registerUser is null)
@@ -261,22 +261,6 @@ namespace Demo.Services.Implements
         }
 
         /// <summary>
-        /// 是否在登出名單中
-        /// </summary>
-        public bool IsLogout(string jwt)
-        {
-            // 查出是否有在 BlackList 中
-            var blackList = _demoUow.SysJwtBlackListRepository.FindConditions(x => (x.JwtToken).Equals(jwt));
-
-            if (blackList is null || blackList.Count() == 0)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// 產生使用者權限關聯
         /// </summary>
         private List<UserRole> CreateUserRoleAssociation(ApproveRegisterDto approveRegisterDto)
@@ -284,11 +268,13 @@ namespace Demo.Services.Implements
             // 產生出 USERROLE 關聯表資料
             Guid userId = Guid.NewGuid();
 
-            List<Role> roles = _demoUow.RoleRepository
+            // 取得使用者權限
+            var roles = _demoUow.RoleRepository
                 .FindConditions(x => approveRegisterDto.Roles.Contains(x.RoleName)).ToList();
 
-            List<UserRole> userRoles = new List<UserRole>();
+            var userRoles = new List<UserRole>();
 
+            // 製作關聯資料
             foreach (Role role in roles)
             {
                 userRoles.Add(new UserRole()
@@ -300,6 +286,14 @@ namespace Demo.Services.Implements
             }
 
             return userRoles;
+        }
+
+        public List<string> GetRoleName()
+        {
+            return _demoUow.RoleRepository
+                .FindAll()
+                .Select(x => x.RoleName)
+                .ToList();
         }
     }
 }

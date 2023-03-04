@@ -1,8 +1,7 @@
-﻿using Demo.Repository.implements.Interfaces;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace Demo.Repository.implements
+namespace Demo.Repository.Infrastructures
 {
     public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
     {
@@ -20,7 +19,7 @@ namespace Demo.Repository.implements
         {
             if (entity == null)
             {
-                throw new ArgumentNullException("新增資料為空");
+                throw new ArgumentNullException("新增資料內容為空");
             }
 
             _dbContext.Set<TEntity>().Add(entity);
@@ -65,7 +64,7 @@ namespace Demo.Repository.implements
         {
             if (entity == null)
             {
-                throw new ArgumentNullException("刪除資料為空");
+                throw new ArgumentNullException("刪除資料內容為空");
             }
 
             _dbContext.Set<TEntity>().Remove(entity);
@@ -91,7 +90,7 @@ namespace Demo.Repository.implements
         {
             if (entity == null)
             {
-                throw new ArgumentNullException("修改資料為空");
+                throw new ArgumentNullException("修改資料內容為空");
             }
 
             _dbContext.Entry(entity).CurrentValues.SetValues(entity);

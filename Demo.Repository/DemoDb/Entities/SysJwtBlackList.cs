@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Demo.Repository.Entities
+namespace Demo.Repository.DemoDb.Entities
 {
     public partial class SysJwtBlackList
     {

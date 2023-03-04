@@ -1,8 +1,8 @@
-﻿using Demo.Repository.Entities;
-using Demo.Repository.implements.Interfaces;
+﻿using Demo.Repository.DemoDb.Entities;
+using Demo.Repository.DemoDb.Implements.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Demo.Repository.implements
+namespace Demo.Repository.DemoDb.Implements
 {
     public class AccountRepository : IAccountRepository
     {

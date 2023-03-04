@@ -1,4 +1,4 @@
-﻿namespace Demo.WebApi.ViewModels
+﻿namespace Demo.WebApi.ViewModels.AccountViewModels
 {
     public class RefreshTokenVm : LoginVm
     {
