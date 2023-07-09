@@ -21,6 +21,34 @@ namespace Demo.Services.Implements
         }
 
         /// <summary>
+        /// 產生使用者權限關聯
+        /// </summary>
+        private List<UserRole> CreateUserRoleAssociation(ApproveRegisterDto approveRegisterDto)
+        {
+            // 產生出 USERROLE 關聯表資料
+            Guid userId = Guid.NewGuid();
+
+            // 取得使用者權限
+            var roles = _demoUow.RoleRepository
+                .FindConditions(x => approveRegisterDto.Roles.Contains(x.RoleName)).ToList();
+
+            var userRoles = new List<UserRole>();
+
+            // 製作關聯資料
+            foreach (Role role in roles)
+            {
+                userRoles.Add(new UserRole()
+                {
+                    RoleId = role.RoleId,
+                    UserId = userId,
+                    UserRoleId = Guid.NewGuid()
+                });
+            }
+
+            return userRoles;
+        }
+
+        /// <summary>
         /// 產生指定人員的 JWT
         /// </summary>
         public string CreateJwt(UserRoleInfoDto userRole)
@@ -261,33 +289,8 @@ namespace Demo.Services.Implements
         }
 
         /// <summary>
-        /// 產生使用者權限關聯
+        /// 取得角色名稱
         /// </summary>
-        private List<UserRole> CreateUserRoleAssociation(ApproveRegisterDto approveRegisterDto)
-        {
-            // 產生出 USERROLE 關聯表資料
-            Guid userId = Guid.NewGuid();
-
-            // 取得使用者權限
-            var roles = _demoUow.RoleRepository
-                .FindConditions(x => approveRegisterDto.Roles.Contains(x.RoleName)).ToList();
-
-            var userRoles = new List<UserRole>();
-
-            // 製作關聯資料
-            foreach (Role role in roles)
-            {
-                userRoles.Add(new UserRole()
-                {
-                    RoleId = role.RoleId,
-                    UserId = userId,
-                    UserRoleId = Guid.NewGuid()
-                });
-            }
-
-            return userRoles;
-        }
-
         public List<string> GetRoleName()
         {
             return _demoUow.RoleRepository

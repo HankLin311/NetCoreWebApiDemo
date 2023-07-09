@@ -181,14 +181,14 @@ namespace Demo.Repository.Datas
 
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.UserRoles)
-                    .HasForeignKey(d => d.RoleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasForeignKey(d => d.RoleId) // 外鍵
+                    .OnDelete(DeleteBehavior.Cascade) // 其中一個
                     .HasConstraintName("FK_USER_ROLE_RoleId");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.UserRoles)
                     .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_USER_ROLE_UserId");
             });
 

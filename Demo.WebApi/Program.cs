@@ -1,20 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using NLog;
 using NLog.Web;
-using Microsoft.OpenApi.Models;
-using System.Reflection;
 using Demo.WebApi.Infrastructure.Filters;
 using Demo.WebApi.Infrastructure.MiddleWare;
-using Demo.Services.Implements;
-using Demo.Common.Helpers;
-using Demo.Repository.Infrastructures;
 using Demo.Repository.Datas;
-using Demo.Services.Implements.Interfaces;
-using Demo.WebApi.Infrastructure.ApiResponse;
-using Demo.Common.ConstVariables;
+using Demo.WebApi.Infrastructure.Extesions;
 using Microsoft.AspNetCore.Mvc;
-using Demo.Repository.DemoDb.Implements;
-using Demo.Repository.DemoDb.Implements.Interfaces;
 
 namespace Demo.WebApi
 {
@@ -27,163 +18,79 @@ namespace Demo.WebApi
                 .LoadConfigurationFromAppSettings()
                 .GetCurrentClassLogger();
 
-            logger.Debug("init API");
+            logger.Debug("start API");
 
             try
             {
-                // ³]©w¦P·½
-                var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
                 var builder = WebApplication.CreateBuilder(args);
 
-                // µù¥U Controllter
+                // Controllter
                 builder.Services
                     .AddControllers(config =>
                     {
-                        // ¦Û­qµn¤JÅçÃÒ Filter
+                        // è‡ªè¨‚ç™»å…¥é©—è­‰ Filter
                         config.Filters.Add<SysAuthFilter>();
 
-                        // ¨Ï¥ÎªÌ¾Ş§@ Filter
+                        // ä½¿ç”¨è€…æ“ä½œ Filter
                         config.Filters.Add<SysOperateFIlter>();
 
-                        // ®·®»¦Û­q¨Ò¥~ Filter
+                        // æ•æ‰è‡ªè¨‚ä¾‹å¤– Filter
                         config.Filters.Add<CustExceptionFilter>();
                     })
                     .ConfigureApiBehaviorOptions(options =>
                     {
-                        #region ³B²z Modal Binding ¿ù»~
-                        options.InvalidModelStateResponseFactory = (actionContext) =>
-                        {
-                            var problemDetails = new ValidationProblemDetails(actionContext.ModelState);
 
-                            var validErrorMsgs = problemDetails.Errors
-                                .ToLookup(x => x.Key)
-                                .Select(x =>
-                                {
-                                    string errorMsg = $"{x.Key} : ";
-                                    foreach (var fs in x.ToList())
-                                    {
-                                        errorMsg += string.Join(" / ", fs.Value);
-                                    }
+                        options.AddModelBindingErrorEvent();
+                    })
+                     ;
 
-                                    return errorMsg;
-                                })
-                                .ToArray();
-
-                            string validErrorMsgTotal = validErrorMsgs.Length > 0 ? string.Join(" || ", validErrorMsgs) : "¿é¤J Paramter ¿ù»~";
-
-                            var result = new ApiJsonResponse()
-                            {
-                                StatusCode = ApiResultStatus.CUST_ERROR,
-                                ErrorMessage = validErrorMsgTotal
-                            };
-
-                            return new BadRequestObjectResult(result);
-                        };
-                        #endregion
-                    });
-
-                // ª`¤J EF Core Sql Server Provider & ³s½u¦r¦ê
+                // EF Core Sql Server Provider & é€£ç·šå­—ä¸²
                 builder.Services
                     .AddDbContext<DemoContext>(options =>
                     {
                         options.UseSqlServer("name=ConnectionStrings:MusicShopContextDBString");
                     });
 
-                // §ï¥Î NLog 
+                // æ”¹ç”¨ NLog 
                 builder.Logging.ClearProviders();
                 builder.Host.UseNLog();
 
-                // ¦Û­q»İ­n DI
-                builder.Services.AddSingleton<JwtHelper>();
-                builder.Services.AddScoped<DbContext, DemoContext>();
-                builder.Services.AddScoped<IDemoUow, DemoUow>();
-                builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-                builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-                builder.Services.AddScoped<IAccountService, AccountService>();
+                // è‡ªè¨‚ DI
+                builder.Services.AddDi();
 
-                // µù¥U CORS 
-                builder.Services.AddCors(options =>
-                {
-                    options.AddPolicy(MyAllowSpecificOrigins,
-                        policy =>
-                        {
-                            // ¥¿¦¡Àô¹Ò¡A¤£¥i¨Ï¥Î *
-                            policy.WithOrigins("*")
-                            .AllowAnyMethod()
-                            .AllowAnyHeader();
-                        });
-                });
+                // è‡ªè¨‚ CORS 
+                builder.Services.AddAllowAnyCors(builder.Configuration["CorsStrings:AllowAnyOrigins"]);
 
-                // Swagger
-                builder.Services.AddSwaggerGen((swaggerGenOptions) =>
-                {
-                    #region ³]©w Swagger API
+                // è‡ªè¨‚ Swagger
+                builder.Services.AddSwaggerDoc();
 
-                    // API ªA°ÈÂ²¤¶
-                    swaggerGenOptions.SwaggerDoc("v1", new OpenApiInfo
-                    {
-                        Title = "NetCoreWebApiDemo",
-                        Version = "v1",
-                    });
-
-                    // Åã¥Ü Authorization «ö¶s©M­¶­±
-                    swaggerGenOptions.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                    {
-                        Name = "Authorization",
-                        In = ParameterLocation.Header,
-                        Type = SecuritySchemeType.ApiKey,
-                        Scheme = "Bearer"
-                    });
-
-                    // À°¦£±N½Ğ¨D¥[¤W Authorization
-                    swaggerGenOptions.AddSecurityRequirement(new OpenApiSecurityRequirement
-                    {
-                        {
-                            new OpenApiSecurityScheme
-                            {
-                                Reference = new OpenApiReference
-                                {
-                                    Id = "Bearer",
-                                    Type = ReferenceType.SecurityScheme
-                                }
-                            },
-                            new List<string>(){}
-                        }
-                    });
-
-                    // Åª¨ú XML ÀÉ®×²£¥Í API »¡©ú
-                    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                    swaggerGenOptions.IncludeXmlComments(xmlPath);
-
-                    #endregion
-                });
-
+                // å•Ÿå‹• 
                 var app = builder.Build();
 
-                // À³¥Îµ{¦¡¼h¯Å¨Ò¥~³B²z
+                // æ‡‰ç”¨ç¨‹å¼å±¤ç´šä¾‹å¤–è™•ç†
                 app.UseMiddleware<SysErrorHandlerMiddleware>();
 
+                // å¦‚æœæ˜¯é–‹ç™¼ç’°å¢ƒä¸‹
                 if (app.Environment.IsDevelopment())
                 {
+                    // ä½¿ç”¨ Swagger
                     app.UseSwagger();
                     app.UseSwaggerUI();
+
+                    // å•Ÿç”¨ CORS
+                    app.UseCors(builder.Configuration["CorsStrings:AllowAnyOrigins"]);
                 }
 
-                // ±Ò¥Î CORS
-                app.UseCors(MyAllowSpecificOrigins);
-
-                // ±j¨î±N http Âà¦¨ https
+                // å¼·åˆ¶å°‡ http è½‰æˆ https
                 app.UseHttpsRedirection();
 
-                // ±ÂÅv
+                // æˆæ¬Š
                 app.UseAuthentication();
 
-                // Åv­­ÅçÃÒ
+                // æ¬Šé™é©—è­‰
                 app.UseAuthorization();
 
-                // ¹ïÀ³Äİ©Ê¸ô¥Ñ±±¨î¾¹
+                // å°æ‡‰å±¬æ€§è·¯ç”±æ§åˆ¶å™¨
                 app.MapControllers();
 
                 app.Run();
